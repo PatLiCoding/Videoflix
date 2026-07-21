@@ -2,12 +2,16 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework import status
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
+
 from auth_app.models import User
 from auth_app.api.serializers import RegistrationSerializer
 from auth_app.api.tokens import account_activation_token
 from auth_app.api.utils import send_activation_email
+from auth_app.api.services import generate_login_response
 
 
 class RegisterView(APIView):
@@ -43,3 +47,16 @@ class ActivateView(APIView):
 
         return Response({'message': 'Activation failed.'},
                         status=status.HTTP_400_BAD_REQUEST)
+
+
+class LoginView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = TokenObtainPairSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        access = serializer.validated_data["access"]
+        refresh = serializer.validated_data["refresh"]
+        user = serializer.user
+
+        return generate_login_response(serializer, access, refresh, user)

@@ -24,11 +24,11 @@ RQ_QUEUES_TEST = {
 class AuthTestsHappyPath(APITestCase):
 
     def setUp(self):
-        # self.user = User.objects.create_user(
-        #     email='test@example.com',
-        #     password='securepassword123')
+        self.user = User.objects.create_user(
+            email='test@example.com',
+            password='securepassword123')
         self.register_url = reverse('register')
-        # self.login_url = reverse('login')
+        self.login_url = reverse('login')
 
     def test_register_return_201(self):
         data = {
@@ -51,5 +51,14 @@ class AuthTestsHappyPath(APITestCase):
             'activate', kwargs={'uidb64': uidb64, 'token': token})
         response = self.client.get(activate_url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # print(response.data)
-        # assert False
+
+    def test_login_sets_jwt_cookies_return_200(self):
+        data = {'email': 'test@example.com', 'password': 'securepassword123'}
+        response = self.client.post(self.login_url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('access_token', response.cookies)
+        self.assertIn('refresh_token', response.cookies)
+        access_cookie = response.cookies['access_token']
+        self.assertTrue(access_cookie['httponly'])
+        self.assertEqual(access_cookie['samesite'], 'Lax')
