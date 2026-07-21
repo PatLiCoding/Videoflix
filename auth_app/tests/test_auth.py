@@ -1,0 +1,55 @@
+from auth_app.models import User
+from django.urls import reverse
+from rest_framework import status
+from rest_framework.test import APITestCase
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from auth_app.api.tokens import account_activation_token
+
+from django.test import override_settings
+
+RQ_QUEUES_TEST = {
+    'default': {
+        'HOST': 'localhost',
+        'PORT': 6379,
+        'DB': 0,
+        'ASYNC': False,
+    },
+}
+
+
+@override_settings(
+    RQ_QUEUES=RQ_QUEUES_TEST,
+    EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend',)
+class AuthTestsHappyPath(APITestCase):
+
+    def setUp(self):
+        # self.user = User.objects.create_user(
+        #     email='test@example.com',
+        #     password='securepassword123')
+        self.register_url = reverse('register')
+        # self.login_url = reverse('login')
+
+    def test_register_return_201(self):
+        data = {
+            "email": "user@example.com",
+            "password": "securepassword",
+            "confirmed_password": "securepassword"
+        }
+        response = self.client.post(self.register_url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_get_activate_user_return_200(self):
+        data = {"email": "user@example.com",
+                "password": "securepassword",
+                "confirmed_password": "securepassword"}
+        self.client.post(self.register_url, data, format='json')
+        user = User.objects.get(email="user@example.com")
+        uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+        token = account_activation_token.make_token(user)
+        activate_url = reverse(
+            'activate', kwargs={'uidb64': uidb64, 'token': token})
+        response = self.client.get(activate_url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # print(response.data)
+        # assert False
