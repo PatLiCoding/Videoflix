@@ -29,6 +29,8 @@ class AuthTestsHappyPath(APITestCase):
             password='securepassword123')
         self.register_url = reverse('register')
         self.login_url = reverse('login')
+        self.logout_url = reverse('logout')
+        self.refresh_token_url = reverse('token_refresh')
 
     def test_register_return_201(self):
         data = {
@@ -62,3 +64,30 @@ class AuthTestsHappyPath(APITestCase):
         access_cookie = response.cookies['access_token']
         self.assertTrue(access_cookie['httponly'])
         self.assertEqual(access_cookie['samesite'], 'Lax')
+
+    def test_logout_delete_jwt_cookies_return_200(self):
+        login_data = {'email': 'test@example.com',
+                      'password': 'securepassword123'}
+        response = self.client.post(self.login_url, login_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        data = {}
+        response = self.client.post(
+            self.logout_url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        access_cookie = response.cookies.get('access_token')
+        refresh_cookie = response.cookies.get('refresh_token')
+        self.assertEqual(access_cookie.value, "")
+        self.assertEqual(refresh_cookie.value, "")
+
+    def test_refresh_token_return_200(self):
+        login_data = {'email': 'test@example.com',
+                      'password': 'securepassword123'}
+        response = self.client.post(self.login_url, login_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        data = {}
+        response = self.client.post(
+            self.refresh_token_url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data.get('detail'), "Token refreshed")

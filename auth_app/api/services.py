@@ -7,6 +7,8 @@ browser spaces, append blacklisted states, and set secured cookie values.
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.exceptions import TokenError
 
 
 def generate_login_response(serializer, access, refresh, user):
@@ -61,11 +63,38 @@ def get_validated_access_token(request, serializer_class):
     """
     refresh_token = request.COOKIES.get("refresh_token")
     if not refresh_token:
-        return None, "Refresh token not found"
+        return None, "Refresh token not found", status.HTTP_400_BAD_REQUEST
 
     serializer = serializer_class(data={"refresh": refresh_token})
     try:
         serializer.is_valid(raise_exception=True)
-        return serializer.validated_data.get("access"), None
+        return serializer.validated_data.get("access"), None, None
     except ValidationError:
-        return None, "Refresh token invalid"
+        return None, "Refresh token invalid", status.HTTP_401_UNAUTHORIZED
+
+
+def blacklist_refresh_token(request):
+    """
+    Extracts the refresh token from the request cookies and blacklists it to
+    prevent reuse.
+
+    Guarantees that a compromised or old refresh token cannot be used again to
+    gain access.
+
+    Args:
+        request: The active HTTP request context tracking execution.
+
+    Returns:
+        str or None: An error message string if the operation fails, or None
+                     on success.
+    """
+    refresh_token = request.COOKIES.get("refresh_token")
+    if not refresh_token:
+        return "Token is invalid or expired"
+
+    try:
+        token = RefreshToken(refresh_token)
+        token.blacklist()
+        return None
+    except TokenError:
+        return "Token is invalid or expired"
