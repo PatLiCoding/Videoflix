@@ -9,9 +9,10 @@ from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
 
 from auth_app.models import User
-from auth_app.api.serializers import RegistrationSerializer
+from auth_app.api.serializers import RegistrationSerializer, \
+    PasswordResetSerializer
 from auth_app.api.tokens import account_activation_token
-from auth_app.api.utils import send_activation_email
+from auth_app.api.utils import send_activation_email, send_password_confirm
 from auth_app.api.services import generate_login_response, \
     get_validated_access_token, blacklist_refresh_token
 
@@ -92,12 +93,23 @@ class LogoutView(APIView):
         error_msg = blacklist_refresh_token(request)
         if error_msg:
             return Response(
-                {"detail": error_msg},
-                status=status.HTTP_401_UNAUTHORIZED)
+                {"detail": error_msg}, status=status.HTTP_401_UNAUTHORIZED)
         response = Response({"detail": (
             "Logout successful! All tokens will be deleted. "
-            "Refresh token is now invalid.")},
-            status=status.HTTP_200_OK,)
+            "Refresh token is now invalid.")}, status=status.HTTP_200_OK,)
         response.delete_cookie("access_token")
         response.delete_cookie("refresh_token")
         return response
+
+
+class PasswordResetView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = PasswordResetSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = User.objects.get(email=serializer.validated_data['email'])
+        send_password_confirm(user, request)
+        return Response(
+            {"detail": "An email has been sent to reset your password."},
+            status=status.HTTP_200_OK)

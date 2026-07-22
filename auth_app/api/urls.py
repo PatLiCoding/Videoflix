@@ -1,6 +1,6 @@
 from django.urls import path
 from auth_app.api.views import RegisterView, ActivateView, \
-    LoginView, LogoutView, CookieTokenRefreshView
+    LoginView, LogoutView, CookieTokenRefreshView, PasswordResetView
 
 urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
@@ -10,4 +10,5 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(), name='logout'),
     path('token/refresh/',
          CookieTokenRefreshView.as_view(), name='token_refresh'),
+    path('password_reset/', PasswordResetView.as_view(), name='password_reset')
 ]
