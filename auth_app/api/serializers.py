@@ -36,3 +36,21 @@ class PasswordResetSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 'No account found with this email')
         return value
+
+
+class PasswordConfirmSerializer(serializers.Serializer):
+    new_password = serializers.CharField(write_only=True)
+    confirm_password = serializers.CharField(write_only=True)
+
+    def validate_confirm_password(self, value):
+        new_password = self.initial_data.get('new_password')
+        if new_password and value and new_password != value:
+            raise serializers.ValidationError('Passwords do not match')
+        return value
+
+    def save(self, **kwargs):
+        pw = self.validated_data['new_password']
+        account = kwargs['user']
+        account.set_password(pw)
+        account.save()
+        return account

@@ -5,6 +5,7 @@ from rest_framework.test import APITestCase
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from auth_app.api.tokens import account_activation_token
+from django.contrib.auth.tokens import default_token_generator
 
 from django.test import override_settings
 
@@ -97,4 +98,15 @@ class AuthTestsHappyPath(APITestCase):
         data = {'email': 'test@example.com'}
         response = self.client.post(
             self.password_reset_url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_password_confirm_return_200(self):
+        data = {"new_password": "newsecurepassword",
+                "confirm_password": "newsecurepassword"}
+        user = User.objects.get(email="test@example.com")
+        uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+        token = default_token_generator.make_token(user)
+        password_confirm_url = reverse(
+            'password_confirm', kwargs={'uidb64': uidb64, 'token': token})
+        response = self.client.post(password_confirm_url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
