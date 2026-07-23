@@ -69,7 +69,7 @@ def get_validated_access_token(request, serializer_class):
     try:
         serializer.is_valid(raise_exception=True)
         return serializer.validated_data.get("access"), None, None
-    except ValidationError:
+    except (ValidationError, TokenError):
         return None, "Refresh token invalid", status.HTTP_401_UNAUTHORIZED
 
 
