@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
-from auth_app.api.tokens import account_activation_token
+from auth_app.services.tokens import account_activation_token
 from django.contrib.auth.tokens import default_token_generator
 
 from django.test import override_settings
@@ -35,11 +35,9 @@ class AuthTestsHappyPath(APITestCase):
         self.password_reset_url = reverse('password_reset')
 
     def test_register_return_201(self):
-        data = {
-            "email": "user@example.com",
-            "password": "securepassword",
-            "confirmed_password": "securepassword"
-        }
+        data = {"email": "user@example.com",
+                "password": "securepassword",
+                "confirmed_password": "securepassword"}
         response = self.client.post(self.register_url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -59,7 +57,6 @@ class AuthTestsHappyPath(APITestCase):
     def test_login_sets_jwt_cookies_return_200(self):
         data = {'email': 'test@example.com', 'password': 'securepassword123'}
         response = self.client.post(self.login_url, data, format='json')
-
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('access_token', response.cookies)
         self.assertIn('refresh_token', response.cookies)
@@ -72,10 +69,8 @@ class AuthTestsHappyPath(APITestCase):
                       'password': 'securepassword123'}
         response = self.client.post(self.login_url, login_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
         data = {}
-        response = self.client.post(
-            self.logout_url, data, format='json')
+        response = self.client.post(self.logout_url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         access_cookie = response.cookies.get('access_token')
         refresh_cookie = response.cookies.get('refresh_token')

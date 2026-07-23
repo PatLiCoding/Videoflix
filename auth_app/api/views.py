@@ -10,10 +10,11 @@ from django.contrib.auth.tokens import default_token_generator
 from auth_app.models import User
 from auth_app.api.serializers import RegistrationSerializer, \
     PasswordResetSerializer, PasswordConfirmSerializer
-from auth_app.api.tokens import account_activation_token
-from auth_app.api.utils import send_activation_email, send_password_confirm, \
-    decode_uid
-from auth_app.api.services import generate_login_response, \
+from auth_app.services.tokens import account_activation_token
+from auth_app.services.email_utils import send_activation_email, \
+    send_password_confirm
+from auth_app.services.decode_uid import decode_uid
+from auth_app.services.auth_services import generate_login_response, \
     get_validated_access_token, blacklist_refresh_token
 
 
