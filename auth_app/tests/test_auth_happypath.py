@@ -94,7 +94,7 @@ class AuthTestsHappyPath(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data.get('detail'), "Token refreshed")
 
-    def test_password_reset_return_201(self):
+    def test_password_reset_return_200(self):
         data = {'email': 'test@example.com'}
         response = self.client.post(
             self.password_reset_url, data, format='json')
