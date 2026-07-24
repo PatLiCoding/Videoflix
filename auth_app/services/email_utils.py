@@ -22,7 +22,9 @@ def _send_html_email(subject, template_name, context, to_email):
 def send_activation_email(user, request):
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     token = account_activation_token.make_token(user)
-    activation_link = f"{settings.FRONTEND_URL}/pages/auth/activate.html?uid={uid}&token={token}"
+    activation_link = (
+        f"{settings.FRONTEND_URL}/pages/auth/activate.html"
+        f"?uid={uid}&token={token}")
     queue = django_rq.get_queue('default')
     queue.enqueue(
         _send_html_email, 'Confirm your email', 'emails/activation_email.html',
@@ -33,7 +35,9 @@ def send_activation_email(user, request):
 def send_password_confirm(user, request):
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     token = default_token_generator.make_token(user)
-    reset_link = f"{settings.FRONTEND_URL}/pages/auth/confirm_password.html?uid={uid}&token={token}"
+    reset_link = (
+        f"{settings.FRONTEND_URL}/pages/auth/confirm_password.html"
+        f"?uid={uid}&token={token}")
     queue = django_rq.get_queue('default')
     queue.enqueue(_send_html_email, 'Reset your Password',
                   'emails/password_reset_email.html',

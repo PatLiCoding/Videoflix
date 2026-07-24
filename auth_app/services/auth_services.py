@@ -33,17 +33,15 @@ def generate_login_response(serializer, access, refresh, user):
         Response: A configured REST Framework response containing the user
                   data and the secured cookie headers.
     """
-    if serializer.is_valid():
-        response = Response(
-            {"detail": "Login successful",
-                "user": {"id": user.id, "username": user.email, },
-             }, status=status.HTTP_200_OK,)
-        response.set_cookie(key="access_token", value=access,
-                            httponly=True, secure=True, samesite="Lax",)
-        response.set_cookie(key="refresh_token", value=refresh,
-                            httponly=True, secure=True, samesite="Lax",)
-        return response
-    return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
+    response = Response(
+        {"detail": "Login successful",
+         "user": {"id": user.id, "username": user.email}},
+        status=status.HTTP_200_OK)
+    response.set_cookie(key="access_token", value=access,
+                        httponly=True, secure=True, samesite="Lax")
+    response.set_cookie(key="refresh_token", value=refresh,
+                        httponly=True, secure=True, samesite="Lax")
+    return response
 
 
 def get_validated_access_token(request, serializer_class):
