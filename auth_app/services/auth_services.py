@@ -13,15 +13,12 @@ from rest_framework_simplejwt.exceptions import TokenError
 
 def generate_login_response(serializer, access, refresh, user):
     """
-    Helper function to generate a successful login response package.
+    Build a successful login response with secure auth cookies.
 
     Sets both the access and refresh JWTs as secure HTTP-only cookies to
     shield them against Cross-Site Scripting (XSS) injection vectors.
 
     Args:
-        serializer:
-            The active validation serializer handling data structural
-            evaluation.
         access (str):
             The raw string encrypted representation of the access token.
         refresh (str):
@@ -56,8 +53,8 @@ def get_validated_access_token(request, serializer_class):
             The serializer class to process validation operations.
 
     Returns:
-        tuple: (access_token, None) if successful, or (None, error_message)
-               if validation fails.
+        tuple: (access_token, None, None) if successful, or
+               (None, error_message, error_status) if validation fails.
     """
     refresh_token = request.COOKIES.get("refresh_token")
     if not refresh_token:

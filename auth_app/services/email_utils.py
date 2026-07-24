@@ -1,3 +1,4 @@
+"""Background email sending for account activation and password reset."""
 import django_rq
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
@@ -11,6 +12,14 @@ from auth_app.services.tokens import account_activation_token
 
 
 def _send_html_email(subject, template_name, context, to_email):
+    """Render an HTML email template and send it as a multipart message.
+
+    Args:
+        subject (str): The email subject line.
+        template_name (str): Path to the HTML template to render.
+        context (dict): Context data passed to the template.
+        to_email (str): Recipient email address.
+    """
     html_content = render_to_string(template_name, context)
     text_content = strip_tags(html_content)
     msg = EmailMultiAlternatives(
@@ -20,6 +29,16 @@ def _send_html_email(subject, template_name, context, to_email):
 
 
 def send_activation_email(user, request):
+    """Queue an account activation email for the given user.
+
+    Builds an activation link containing the encoded user id and a
+    single-use activation token, then enqueues the email as a background
+    RQ job.
+
+    Args:
+        user (User): The newly registered user to activate.
+        request: The current HTTP request.
+    """
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     token = account_activation_token.make_token(user)
     activation_link = (
@@ -33,6 +52,15 @@ def send_activation_email(user, request):
 
 
 def send_password_confirm(user, request):
+    """Queue a password-reset email for the given user.
+
+    Builds a password-reset link containing the encoded user id and a
+    single-use reset token, then enqueues the email as a background RQ job.
+
+    Args:
+        user (User): The user requesting a password reset.
+        request: The current HTTP request.
+    """
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     token = default_token_generator.make_token(user)
     reset_link = (

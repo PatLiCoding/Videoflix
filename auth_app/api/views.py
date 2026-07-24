@@ -1,3 +1,5 @@
+"""API views for registration, activation, login, logout, token refresh,
+and password reset/confirmation."""
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
@@ -19,9 +21,16 @@ from auth_app.services.auth_services import generate_login_response, \
 
 
 class RegisterView(APIView):
+    """Register a new, inactive user and send an activation email."""
     permission_classes = [AllowAny]
 
     def post(self, request):
+        """Validate registration data, create the user, and queue the
+        activation email.
+
+        Returns:
+            Response: 201 with the created user's id/email on success.
+        """
         serializer = RegistrationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
@@ -33,9 +42,16 @@ class RegisterView(APIView):
 
 
 class ActivateView(APIView):
+    """Activate a user account via the emailed uid/token link."""
     permission_classes = [AllowAny]
 
     def get(self, request, uidb64, token):
+        """Verify the uid/token pair and activate the matching account.
+
+        Returns:
+            Response: 200 on successful activation, 400 if the uid or
+            token is invalid.
+        """
         user = decode_uid(uidb64)
         if user is None:
             return Response({'message': 'Activation failed.'},
@@ -51,9 +67,15 @@ class ActivateView(APIView):
 
 
 class LoginView(APIView):
+    """Authenticate a user and issue JWT auth cookies."""
     permission_classes = [AllowAny]
 
     def post(self, request):
+        """Validate credentials and return a login response with cookies.
+
+        Returns:
+            Response: 200 with user info and access/refresh cookies set.
+        """
         serializer = TokenObtainPairSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         access = serializer.validated_data["access"]
@@ -64,10 +86,17 @@ class LoginView(APIView):
 
 
 class CookieTokenRefreshView(TokenRefreshView):
+    """Issue a new access token cookie from a valid refresh token cookie."""
     authentication_classes = []
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
+        """Validate the refresh token cookie and set a new access cookie.
+
+        Returns:
+            Response: 200 with a new access_token cookie, 400 if no refresh
+            token cookie is present, or 401 if it is invalid.
+        """
         serializer_class = self.get_serializer_class()
         access_token, error_msg, error_status = get_validated_access_token(
             request, serializer_class)
@@ -84,10 +113,17 @@ class CookieTokenRefreshView(TokenRefreshView):
 
 
 class LogoutView(APIView):
+    """Blacklist the refresh token and clear auth cookies."""
     authentication_classes = []
     permission_classes = [AllowAny]
 
     def post(self, request):
+        """Blacklist the current refresh token and delete auth cookies.
+
+        Returns:
+            Response: 200 on success, 401 if the refresh token is missing
+            or invalid.
+        """
         error_msg = blacklist_refresh_token(request)
         if error_msg:
             return Response(
@@ -101,9 +137,16 @@ class LogoutView(APIView):
 
 
 class PasswordResetView(APIView):
+    """Send a password-reset email for an existing account."""
     permission_classes = [AllowAny]
 
     def post(self, request):
+        """Validate the email and queue a password-reset email.
+
+        Returns:
+            Response: 200 confirming an email was sent, 400 if the email
+            is missing or unknown.
+        """
         serializer = PasswordResetSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = User.objects.get(email=serializer.validated_data['email'])
@@ -114,9 +157,16 @@ class PasswordResetView(APIView):
 
 
 class PasswordConfirmView(APIView):
+    """Confirm a password reset via the emailed uid/token link."""
     permission_classes = [AllowAny]
 
     def post(self, request, uidb64, token):
+        """Verify the uid/token pair and set the user's new password.
+
+        Returns:
+            Response: 200 on successful reset, 400 if the uid, token, or
+            new password data is invalid.
+        """
         user = decode_uid(uidb64)
         if user is None:
             return Response({'detail': 'Password reset failed.'},

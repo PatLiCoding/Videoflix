@@ -1,3 +1,4 @@
+"""URL routes for the authentication API endpoints."""
 from django.urls import path
 from auth_app.api.views import RegisterView, ActivateView, \
     LoginView, LogoutView, CookieTokenRefreshView, PasswordResetView, \

@@ -1,13 +1,14 @@
-from auth_app.models import User
-from django.urls import reverse
+"""Happy-path tests for the authentication API (register, activate, login,
+logout, token refresh, password reset/confirm)."""
 from rest_framework import status
 from rest_framework.test import APITestCase
+from django.urls import reverse
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
-from auth_app.services.tokens import account_activation_token
-from django.contrib.auth.tokens import default_token_generator
-
 from django.test import override_settings
+from django.contrib.auth.tokens import default_token_generator
+from auth_app.services.tokens import account_activation_token
+from auth_app.models import User
 
 RQ_QUEUES_TEST = {
     'default': {
@@ -23,8 +24,10 @@ RQ_QUEUES_TEST = {
     RQ_QUEUES=RQ_QUEUES_TEST,
     EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend',)
 class AuthTestsHappyPath(APITestCase):
+    """Verify that each auth endpoint succeeds when given valid input."""
 
     def setUp(self):
+        """Create a test user and resolve the auth endpoint URLs."""
         self.user = User.objects.create_user(
             email='test@example.com',
             password='securepassword123')
@@ -35,6 +38,7 @@ class AuthTestsHappyPath(APITestCase):
         self.password_reset_url = reverse('password_reset')
 
     def test_register_return_201(self):
+        """201: Registration succeeds with valid, matching passwords."""
         data = {"email": "user@example.com",
                 "password": "securepassword",
                 "confirmed_password": "securepassword"}
@@ -42,6 +46,7 @@ class AuthTestsHappyPath(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_get_activate_user_return_200(self):
+        """200: Account activation succeeds with a valid uid/token."""
         data = {"email": "user@example.com",
                 "password": "securepassword",
                 "confirmed_password": "securepassword"}
@@ -55,6 +60,7 @@ class AuthTestsHappyPath(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_login_sets_jwt_cookies_return_200(self):
+        """200: Login succeeds and sets HttpOnly access/refresh cookies."""
         data = {'email': 'test@example.com', 'password': 'securepassword123'}
         response = self.client.post(self.login_url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -65,6 +71,7 @@ class AuthTestsHappyPath(APITestCase):
         self.assertEqual(access_cookie['samesite'], 'Lax')
 
     def test_logout_delete_jwt_cookies_return_200(self):
+        """200: Logout clears both the access and refresh cookies."""
         login_data = {'email': 'test@example.com',
                       'password': 'securepassword123'}
         response = self.client.post(self.login_url, login_data, format='json')
@@ -78,6 +85,7 @@ class AuthTestsHappyPath(APITestCase):
         self.assertEqual(refresh_cookie.value, "")
 
     def test_refresh_token_return_200(self):
+        """200: A valid refresh token cookie yields a new access token."""
         login_data = {'email': 'test@example.com',
                       'password': 'securepassword123'}
         response = self.client.post(self.login_url, login_data, format='json')
@@ -90,12 +98,15 @@ class AuthTestsHappyPath(APITestCase):
         self.assertEqual(response.data.get('detail'), "Token refreshed")
 
     def test_password_reset_return_200(self):
+        """200: Password reset request succeeds for an existing account."""
         data = {'email': 'test@example.com'}
         response = self.client.post(
             self.password_reset_url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_password_confirm_return_200(self):
+        """200: Password reset confirmation succeeds with a valid uid/token
+        and matching new passwords."""
         data = {"new_password": "newsecurepassword",
                 "confirm_password": "newsecurepassword"}
         user = User.objects.get(email="test@example.com")
