@@ -32,7 +32,7 @@ class Video(models.Model):
 
     class Meta:
         """Meta options for the Video model."""
-        ordering = ["-created_at"]
+        ordering = ["created_at"]
         verbose_name = "Video"
         verbose_name_plural = "Videos"
 

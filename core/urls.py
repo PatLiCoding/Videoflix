@@ -17,8 +17,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 import auth_app.api.urls
+import video_content_app.api.urls
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(auth_app.api.urls)),
+    path('api/', include(video_content_app.api.urls)),
 ]
