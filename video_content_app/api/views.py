@@ -1,3 +1,4 @@
+import re
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 
@@ -31,5 +32,23 @@ class HLSMasterPlaylistView(APIView):
             return FileResponse(
                 open(playlist_path, 'rb'),
                 content_type='application/vnd.apple.mpegurl')
+        except FileNotFoundError:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+class HLSVideoSegmentView(APIView):
+    authentication_classes = [JWTCookieAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, movie_id, resolution, segment):
+        if not re.fullmatch(r'\d{3}\.ts', segment):
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        try:
+            get_object_or_404(Video, id=movie_id)
+            output_dir = get_hls_output_dir(movie_id, resolution)
+            segment_path = output_dir / segment
+            return FileResponse(
+                open(segment_path, 'rb'),
+                content_type='video/MP2T')
         except FileNotFoundError:
             return Response(status=status.HTTP_404_NOT_FOUND)
