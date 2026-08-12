@@ -4,6 +4,16 @@ from django.db import models
 
 
 class Video(models.Model):
+    """Represents an uploaded video and its metadata.
+
+    A Video is created with just an original ``video_file``; a
+    post_save signal then queues an asynchronous RQ job that
+    converts the source file into HLS renditions (480p/720p/1080p)
+    stored under ``media/videos/hls/<id>/<resolution>/``. The title
+    defaults to "Generating..." to reflect that processing may not
+    be finished yet when the record is first created.
+    """
+
     VIDEO_CATEGORY = [
         ('action', 'Action'),
         ('anime', 'Anime'),

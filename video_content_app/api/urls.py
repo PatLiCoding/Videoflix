@@ -1,3 +1,10 @@
+"""URL routes for the video content API.
+Exposes three endpoints:
+    - GET /video/                                  -> list all videos
+    - GET /video/<movie_id>/<resolution>/index.m3u8 -> HLS master playlist
+    - GET /video/<movie_id>/<resolution>/<segment>/ -> HLS video segment (.ts)
+All three require JWT authentication (enforced in the views).
+"""
 from django.urls import path
 from video_content_app.api.views import VideoView, \
     HLSMasterPlaylistView, HLSVideoSegmentView
