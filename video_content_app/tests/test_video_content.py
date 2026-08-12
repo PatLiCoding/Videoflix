@@ -6,7 +6,7 @@ from rest_framework.test import APITestCase
 
 from auth_app.models import User
 from video_content_app.models import Video
-from video_content_app.tasks import get_hls_output_dir
+from video_content_app.services.utils import get_hls_output_dir
 
 
 @override_settings(MEDIA_ROOT=tempfile.mkdtemp())
@@ -18,7 +18,6 @@ class VideoTestsHappyPath(APITestCase):
             password='securepassword123')
         self.video = Video.objects.create(
             title="Movie Title", description="Movie",
-            thumbnail="http://example.com/media/thumbnail/image.jpg",
             category="Drama")
         self.client.force_authenticate(user=self.user)
         output_dir = get_hls_output_dir(self.video.id, '720p')
@@ -58,11 +57,6 @@ class VideoTestsUnhappyPath(APITestCase):
             password='securepassword123')
         self.video = Video.objects.create(
             title="Movie Title", description="Movie",
-            thumbnail="http://example.com/media/thumbnail/image.jpg",
-            category="Drama")
-        self.video2 = Video.objects.create(
-            title="Movie Title", description="Movie",
-            thumbnail="http://example.com/media/thumbnail/image.jpg",
             category="Drama")
         output_dir = get_hls_output_dir(self.video.id, '720p')
         output_dir.mkdir(parents=True, exist_ok=True)

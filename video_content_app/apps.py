@@ -5,4 +5,4 @@ class VideoContentAppConfig(AppConfig):
     name = 'video_content_app'
 
     def ready(self):
-        from . import singals
+        from .services import signals

@@ -29,11 +29,10 @@ class Video(models.Model):
         max_length=20, choices=VIDEO_CATEGORY, default='action')
     video_file = models.FileField(
         upload_to="videos/originals/", blank=True, null=True)
-    hls_path = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         """Meta options for the Video model."""
-        ordering = ["created_at"]
+        ordering = ["-created_at"]
         verbose_name = "Video"
         verbose_name_plural = "Videos"
 

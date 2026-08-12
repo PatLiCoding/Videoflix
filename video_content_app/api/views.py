@@ -9,7 +9,7 @@ from rest_framework.response import Response
 
 from auth_app.api.authentications import JWTCookieAuthentication
 from video_content_app.models import Video
-from video_content_app.tasks import get_hls_output_dir
+from video_content_app.services.utils import get_hls_output_dir
 from video_content_app.api.serializers import VideoSerializer
 
 

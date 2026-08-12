@@ -3,8 +3,8 @@ from django.dispatch import receiver
 import os
 import django_rq
 
-from .models import Video
-from .tasks import convert_all_resolutions
+from video_content_app.models import Video
+from video_content_app.services.tasks import convert_all_resolutions
 
 
 @receiver(post_save, sender=Video)
