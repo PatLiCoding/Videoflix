@@ -101,7 +101,9 @@ ffmpeg -version
 
 2. **Create an `.env` file** in the project root (see [Environment
    Variables](#environment-variables) below for all available options).
-
+> **Note:** The `EMAIL_*` values in `.env.template` are placeholders. See
+> [Notes](#notes) for what happens if you don't replace them with real SMTP
+> credentials.
    ```bash
    cp .env.template .env
    ```
@@ -254,6 +256,12 @@ video_content_app/
   compatibility with `entrypoint.sh`, which is a fixed project requirement.
 - Password reset and account activation intentionally return generic
   responses/errors to avoid leaking whether an email address is registered.
+- To actually receive activation/password-reset emails, replace the
+  placeholder `EMAIL_*` values in `.env` with real SMTP credentials (e.g. a
+  free [Mailtrap.io](https://mailtrap.io) sandbox works well for testing).
+  Without valid credentials, registration/reset requests still return a
+  success response, but the email itself will silently fail to send in the
+  background worker.
 - HLS segment filenames received via the API are validated against a strict
   `\d{3}\.ts` pattern before being read from disk, preventing path traversal
   attacks through the `segment` URL parameter.
