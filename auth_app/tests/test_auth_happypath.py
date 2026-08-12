@@ -68,7 +68,7 @@ class AuthTestsHappyPath(APITestCase):
         self.assertIn('refresh_token', response.cookies)
         access_cookie = response.cookies['access_token']
         self.assertTrue(access_cookie['httponly'])
-        self.assertEqual(access_cookie['samesite'], 'Lax')
+        self.assertEqual(access_cookie['samesite'], 'None')
 
     def test_logout_delete_jwt_cookies_return_200(self):
         """200: Logout clears both the access and refresh cookies."""

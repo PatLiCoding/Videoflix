@@ -108,7 +108,7 @@ class CookieTokenRefreshView(TokenRefreshView):
         response = Response(
             {"detail": "Token refreshed", "access": "new_access_token"})
         response.set_cookie(key="access_token", value=access_token,
-                            httponly=True, secure=True, samesite="Lax")
+                            httponly=True, secure=True, samesite="None")
         return response
 
 
