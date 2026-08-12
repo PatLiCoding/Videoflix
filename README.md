@@ -8,6 +8,22 @@ processing via Django RQ, and Redis caching, all running through Docker.
 > refresh, password reset) and video delivery (listing, HLS playlist and
 > segment streaming, background HLS conversion) are complete.
 
+## Table of Contents
+
+- [Tech Stack](#tech-stack)
+- [Prerequisites](#prerequisites)
+- [Getting Started](#getting-started)
+  - [Installing FFmpeg](#installing-ffmpeg)
+  - [Installation & Setup](#installation--setup)
+- [Environment Variables](#environment-variables)
+- [API Endpoints](#api-endpoints)
+- [HLS Video Delivery](#hls-video-delivery)
+- [Running Tests](#running-tests)
+- [Project Structure](#project-structure)
+- [Notes](#notes)
+- [License](#license)
+- [Author](#author)
+
 ## Tech Stack
 
 - **Framework:** Django 6.0 + Django REST Framework
@@ -28,6 +44,53 @@ processing via Django RQ, and Redis caching, all running through Docker.
 - Docker Compose
 
 ## Getting Started
+### Installing FFmpeg
+
+FFmpeg is required for converting uploaded videos into HLS format (480p,
+720p, 1080p) with `.m3u8` playlists and `.ts` segments. Since the project
+runs entirely through Docker, FFmpeg does **not** need to be installed on
+your host machine — it is already included in the `web` container's Alpine
+image (installed via `apk` in the Dockerfile).
+
+Local installation is only needed if you want to run the conversion logic
+directly outside Docker (e.g. for debugging).
+
+#### Windows
+
+Using Winget (recommended):
+
+```bash
+winget install --id Gyan.FFmpeg -e --source winget
+```
+
+Or download the latest build from:
+
+https://ffmpeg.org/download.html
+
+After installation, make sure the `ffmpeg` executable is available in your system's `PATH`.
+
+#### macOS
+
+Using Homebrew:
+
+```bash
+brew install ffmpeg
+```
+
+#### Linux (Ubuntu/Debian)
+
+```bash
+sudo apt update
+sudo apt install ffmpeg
+```
+
+Verify the installation:
+
+```bash
+ffmpeg -version
+```
+
+### Installation & Setup
 
 1. **Clone the repository**
 
@@ -173,13 +236,15 @@ auth_app/
 ```
 video_content_app/
 ├── models.py           # Video model (metadata, original file, thumbnail)
-├── admin.py             # Django admin configuration
-├── signals.py            # Triggers HLS conversion on video creation
-├── tasks.py               # FFmpeg-based HLS conversion, run via Django RQ
-└── api/
-    ├── serializers.py  # Video list serialization
-    ├── views.py        # Video list, HLS playlist, HLS segment views
-    └── urls.py          # Video endpoint routing
+├── admin.py            # Django admin configuration
+├── api/
+│   ├── serializers.py  # Video list serialization
+│   ├── views.py        # Video list, HLS playlist, HLS segment views
+│   └── urls.py         # Video endpoint routing
+└── services/
+    ├── tasks.py     # FFmpeg-based HLS conversion, run via Django RQ
+    ├── signals.py   # Triggers HLS conversion on video creation
+    └── utils.py     # Path resolution and ffmpeg command building
 ```
 
 ## Notes
