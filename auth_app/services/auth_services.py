@@ -35,9 +35,9 @@ def generate_login_response(serializer, access, refresh, user):
          "user": {"id": user.id, "username": user.email}},
         status=status.HTTP_200_OK)
     response.set_cookie(key="access_token", value=access,
-                        httponly=True, secure=True, samesite="Lax")
+                        httponly=True, secure=True, samesite="None")
     response.set_cookie(key="refresh_token", value=refresh,
-                        httponly=True, secure=True, samesite="Lax")
+                        httponly=True, secure=True, samesite="None")
     return response
 
 
