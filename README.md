@@ -140,7 +140,7 @@ ffmpeg -version
 | `FRONTEND_URL`              | Base URL of the frontend, used to build activation/reset links | `http://localhost:5500`                       |
 | `DB_NAME`                   | PostgreSQL database name                                       | `videoflix_db`                                |
 | `DB_USER`                   | PostgreSQL user                                                | `videoflix_user`                              |
-| `DB_PASSWORD`               | PostgreSQL password                                            | —                                             |
+| `DB_PASSWORD`               | PostgreSQL password                                            | `supersecretpassword` (overridden by `.env.template`) |
 | `DB_HOST`                   | PostgreSQL host                                                | `db`                                          |
 | `DB_PORT`                   | PostgreSQL port                                                | `5432`                                        |
 | `REDIS_LOCATION`            | Redis connection URL for the cache backend                     | `redis://redis:6379/1`                        |
